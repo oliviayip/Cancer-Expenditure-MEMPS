@@ -1287,3 +1287,4 @@ bal.plot(match.it, var.name="distance", which="both", type="histogram", mirror=T
 save(df.match, file="C:/Users/10280994/Desktop/Datasets/MEPS 2016/df.match.Rdata") #If the procedure was successful, replace the file pathway here with your own local computer pathway to save the matched dataset. 
 
 
+#try
