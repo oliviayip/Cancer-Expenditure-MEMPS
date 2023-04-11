@@ -1243,6 +1243,7 @@ hc216_final<-hc216_final%>%
 table(hc216_final$cci_score)
 
 
+
 save(hc216_final, file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/hc216_final.Rdata")
 
 load(file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/hc216_final.Rdata")
