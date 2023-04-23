@@ -155,7 +155,6 @@ table(hc201cancer$marritalstatus, useNA="always")
 
 chisq.test(table(hc201$marry17x,hc201$ccnrdi31), correct=FALSE)
 
-
 ##### Education 
 
 #Recode education variables to generate fewer categories: 
@@ -1304,3 +1303,90 @@ bal.plot(match.it, var.name="distance", which="both", type="histogram", mirror=T
 
 save(df.match, file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/df.match.Rdata") 
 #If the procedure was successful, replace the file pathway here with your own local computer pathway to save the matched dataset. 
+
+
+# chisquare test after propensity score matching 
+
+load(file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/df.match.Rdata")
+
+#Flag: Cancer Diagnosis (CCRNDI31 = yes --> cancer diagnosis by health professional)
+df.match <- df.match %>% 
+  mutate(cancer = ifelse(ccnrdi31 == "1",1,
+                         ifelse(df.match$ccnrdi31==-1,0,NA)))
+
+table(df.match$cancer, useNA='always') 
+
+#Gender: 
+table(df.match$sex, useNA="always")  #1: Male, 2:Female
+table(df.match$sex,df.match$cancer)
+chisq.test(table(df.match$sex,df.match$cancer), correct=FALSE)
+
+# Age
+summary(df.match$age) #AGE AS OF 12/31/17 
+sd(df.match$age) 
+table(df.match$age_cat, df.match$cancer)
+#1 = Age 18-24 years 
+#2 = Age 25-44 years 
+#3 = Age 45-64 years 
+#4 = Age 65+ years 
+chisq.test(table(df.match$age_cat,df.match$ccnrdi31), correct=FALSE)
+
+##### Race/Ethnicity:
+table(df.match$racev1x, useNA="always")
+table(df.match$racev1x,df.match$ccnrdi31)
+chisq.test(table(df.match$racev1x,df.match$ccnrdi31), correct=FALSE)
+
+##### Martial Status 
+table(df.match$marritalstatus, useNA="always")
+table(df.match$marritalstatus,df.match$ccnrdi31)
+chisq.test(table(df.match$marritalstatus,df.match$ccnrdi31), correct=FALSE)
+
+#1 married 
+#2 not married
+#3 inapplicable 
+
+##### Education 
+
+table(df.match$neweducode, useNA='always')
+
+#1 HS OR LESS 
+#2 BS
+#3 GRADUATE LEVEL DEGREE
+#4 NOT APPLICABLE
+table(df.match$neweducode,df.match$ccnrdi31)
+
+chisq.test(table(df.match$neweducode,df.match$ccnrdi31), correct=FALSE)
+
+#### Geographic Location at end of year
+
+# 1 Northeast
+# 2 Midwest
+# 3 South
+# 4 West
+
+table(df.match$region)
+table(df.match$region, df.match$ccnrdi31)
+chisq.test(table(df.match$neweducode,df.match$ccnrdi31), correct=FALSE)
+
+##### Poverty status, end of year 
+
+# 1 Poor/negative
+# 2 Near poor
+# 3 Low income
+# 4 middle income
+# 5 high income
+
+table(df.match$povcat, useNA="always")
+table(df.match$povcat,df.match$ccnrdi31)
+chisq.test(table(df.match$povcat,df.match$ccnrdi31), correct=FALSE)
+
+##### Any insurance coverage 
+# 1 Any private
+# 2 Public only
+# 3 Uninsured
+
+table(df.match$inscov, useNA="always")
+table(df.match$inscov,df.match$ccnrdi31)
+
+chisq.test(table(df.match$inscov,df.match$ccnrdi31), correct=FALSE)
+
