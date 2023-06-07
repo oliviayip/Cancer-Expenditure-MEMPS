@@ -20,7 +20,6 @@ library(haven)            #To import SAS file extension format into R
 library(foreign)
 library(cobalt)           #For covariate balance matching tables and plots 
 
-
 options(scipen =999)      #Removes scientific notation from R output (easier to interpret)
 
 ################################################################################
@@ -29,20 +28,18 @@ options(scipen =999)      #Removes scientific notation from R output (easier to 
 
 #Starting in 2017, AHRQ has provided SAS V9 Format Files to Import 
 
-#hc201 <- read_sas("/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/h201.sas7bdat")
+hc201 <- read_sas("h201.sas7bdat")
 
 #save(hc201, file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/h201.Rdata")
 
 #Load Rdata file (after first time executing code)---------------------------------------------------------------------------------------------------
 
-load(file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/h201.Rdata")
+#load(file="h201.Rdata")
 
 #Convert all variable names to lowercase 
 names(hc201) <- tolower(names(hc201))
 
-hc201cancer <- hc201
-hc201cancer <- subset(hc201cancer, age17x >= 18)
-hc201cancer <- subset(hc201cancer, cancer==1)
+
 #Cohort Flag Creation---------------------------------------------------------------------------------------------------------------------------------
 
 #Flag: Age 18 or older: 
@@ -59,14 +56,9 @@ hc201 <- hc201 %>%
 table(hc201$cancer, useNA='always') 
 
 #Subset if Necessary (this should be performed AFTER propensity score matching): 
-hc201 <- subset(hc201, age17x >= 18) 
-hc201 <- subset(hc201, cancer==1)
-#Subset if Necessary
-hc201cancer <- subset(hc201cancer, age17x >= 18)
-hc201cancer <- hc201cancer %>% 
-  mutate(cancer = ifelse(ccnrdi31 == "1",1,
-                         ifelse(hc201$ccnrdi31==-1,0,NA)))
-hc201cancer <- subset(hc201cancer, ccnrdi31==1)
+#hc201 <- subset(hc201, age17x >= 18) 
+#hc201 <- subset(hc201, cancer==1)
+
 #This resulting dataset should only include those age 18 or older AND were told by a healthcare provider that they had cancer (existing or previous)
 
 
@@ -75,15 +67,11 @@ hc201cancer <- subset(hc201cancer, ccnrdi31==1)
 #Gender: 
 table(hc201$sex, useNA="always")  #1: Male, 2:Female
 
-
 chisq.test(table(hc201$sex,hc201$cancer), correct=FALSE)
-
 
 # Age
 summary(hc201$age17x) #AGE AS OF 12/31/17 
 sd(hc201$age17x) 
-
-wilcox.test(hc201$age17x, hc201cancer$age17x, paired=FALSE) 
 
 ####Age should also be coded as a categorical variable: 
 hc201 <- hc201 %>% 
@@ -150,8 +138,6 @@ hc201$marritalstatus <- factor(hc201$marritalstatus,
                                         "3 NOT APPLICABLE"))
 
 table(hc201$marritalstatus) 
-
-table(hc201cancer$marritalstatus, useNA="always")
 
 chisq.test(table(hc201$marry17x,hc201$ccnrdi31), correct=FALSE)
 
@@ -777,7 +763,9 @@ names(hc201c)[which(names(hc201c)=="inscov17")] <- "inscov"
 names(hc201c)[which(names(hc201c)=="perwt17f")] <- "poolwt" 
 
 #Save new dataframe 
-save(hc201c, file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/h201c.Rdata")
+save(hc201c, file="h201c.Rdata")
+
+#hc201c contains the same number of rows as the raw dataset (31,880)
 
 ################################################################################
 # Household - 2019 Medical Conditions File | HC-214
@@ -786,14 +774,14 @@ save(hc201c, file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs
 #Import, load, and save files (one time only - load Rdata file for future loads)
 #If you dont have the haven package/library installed, install it first 
 
-#Website for 2017 conditions file: https://meps.ahrq.gov/mepsweb/data_stats/download_data_files_detail.jsp?cboPufNumber=HC-199 
+#Website for 2017 conditions file: https://urldefense.com/v3/__https://meps.ahrq.gov/mepsweb/data_stats/download_data_files_detail.jsp?cboPufNumber=HC-199__;!!OLgoXmg!QiQiCemLWqdS44ZnTBoRyjS9VKgK-cO29ky7cc8UyvjooCJMCDq59jRNgD-YP6M1N_j3h2_k6V9FzNeQTGxvxQ$  
 hc199 <- read_sas("/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/h199.sas7bdat")
 
 save(hc199, file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/hc199.Rdata")
 
 #Load Rdata file (after first time executing code)-------------------------------------------------
 
-load(file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/hc199.Rdata")
+load(file="hc199.Rdata")
 
 
 #Convert all variable names to lowercase 
@@ -1030,11 +1018,14 @@ hc199 <- hc199 %>%
                                               ifelse(icd10cdx=="-9",NA,0))))))
 table(hc199$vcom16)
 
+save(hc199, file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/hc199.Rdata")
+
 ######################################
 # Generate Indicator Variables       #
 ######################################
 
 #Filter data to leave dupersid and vcom variables 
+load(file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/hc199.Rdata")
 
 test <- subset(hc199, select=c(dupersid, cancerpatients, vcom1, vcom2, vcom3, vcom4, vcom5, vcom6, vcom7, vcom8, vcom9, vcom10, vcom11, vcom12, vcom14, vcom16))
 
@@ -1047,13 +1038,12 @@ test <- test %>%
     sum,
     na.rm=TRUE
   )
-#Create a new variable that sums the number of chronic diseases per dupersid, called mvcom (maxvcom)
 
+#Create a new variable that sums the number of chronic diseases per dupersid, called mvcom (maxvcom)
 test <- test %>% 
   group_by(dupersid) %>% 
   mutate(mvcom = `vcom1` + `vcom2` + `vcom3` + `vcom4` + `vcom5` + `vcom6` + `vcom7` + `vcom8` + `vcom9` + `vcom10` + `vcom11` + `vcom12` + `vcom14` + `vcom16`)
 #mvcom is the calculated charlson comorbidity index score 
-
 # Generate labels for variables: 
 
 library(Hmisc)
@@ -1080,14 +1070,33 @@ label(test$vcom16) <- 'aids' #( AIDS/HIV)
 #hc201c --> 31,880 rows 
 #Final data set should have an equal number of rows as the original full year consolidated data file 
 
-save(hc199, file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/hc199.Rdata")
-load(file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/hc199.Rdata")
+save(hc199, file="hc199.Rdata")
+#load(file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/hc199.Rdata")
 
+#load(file='hc199.Rdata')
+#load(file='h201c.Rdata') #The original raw 2017 dataset had 23,529 observations 
+colnames(hc199)
 
+hc199 <- subset(hc199, select=c(dupersid, vcom1, vcom2, vcom3, vcom4, vcom5, vcom6, vcom7, vcom8, vcom9, vcom10, vcom11, vcom12, vcom14, vcom16))
+
+test <- hc199 %>% 
+  group_by(dupersid) %>% 
+  summarise(across(starts_with('vcom'),~sum(.,na.rm=TRUE)))
+
+test <- test %>% 
+  mutate_if(is.numeric, ~1*(. >0))
+
+#Change all instances of a value >1 to "1"; these variable should be binary (yes/no) 
+hc199 <- test
+  
 #Merge the condition information into the final dataset: 
+#The final dataset should have 23,529 observations: 
+
 hc216_final <- merge(hc201c, hc199, by="dupersid",all.x=TRUE)
+#Merge was successful - number of rows still corresponds to the raw dataset (n=31,880)
+
 #Calculate the CCI Score: 
-#https://www.mdcalc.com/calc/3917/charlson-comorbidity-index-cci
+#https://urldefense.com/v3/__https://www.mdcalc.com/calc/3917/charlson-comorbidity-index-cci__;!!OLgoXmg!QiQiCemLWqdS44ZnTBoRyjS9VKgK-cO29ky7cc8UyvjooCJMCDq59jRNgD-YP6M1N_j3h2_k6V9FzNdLsw0fyw$ 
 
 #Age: <50 = 0 points 
 #     50-59 years = +1 point 
@@ -1128,7 +1137,6 @@ table(hc216_final$vcom3)
 hc216_final <- hc216_final %>% 
   mutate(cci_pvd = ifelse(vcom3==1,1,
                            ifelse(vcom3==0,0,NA)))
-
 
 table(hc216_final$cci_pvd)
 
@@ -1242,18 +1250,33 @@ hc216_final<-hc216_final%>%
 table(hc216_final$cci_score)
 
 
-save(hc216_final, file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/hc216_final.Rdata")
+save(hc216_final, file="hc216_final.Rdata")
 
-load(file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/hc216_final.Rdata")
+load(file="hc216_final.Rdata")
 
 ################################################################################
 # Propensity Score Matching                                                    #
 ################################################################################
 
 #Propensity Score Matching-matched data = df.match-----------------------------------------------------------------------
+#You cannot match data with missingness, so we need to remove rows with "NAs" for variables that are RELEVANT to the study: 
+hc216_final_match <- subset(hc216_final, select=c(dupersid, age_cat, age, sex, racev1x, hispanx, region, povcat, marritalstatus, inscov, neweducode, 
+                                                  cancer, cci_score))
 
-ecls_nomiss <- na.omit(hc216_final)  #You cannot perform propensity score matching (PSM) if you have missing data ("NA").                                #This generates a new dataframe "ecls_nomiss" that is a copy of your existing dataset removing missing variables 
-#Make sure that when you do this, you do this on the dataset that ONLY contains the variables you NEED for your analysis. 
+hc216_final_match <-  filter(hc216_final_match, age>=18)
+
+hc216_final_match$sex <- as.factor(hc216_final_match$sex)
+hc216_final_match$racev1x <- as.factor(hc216_final_match$racev1x)
+
+table(hc216_final_match$sex)
+table(hc216_final_match$racev1x)
+
+is.factor(hc216_final_match$sex)
+is.factor(hc216_final_match$racev1x)
+
+ecls_nomiss <- na.omit(hc216_final_match)  
+
+#You cannot perform propensity score matching (PSM) if you have missing data ("NA").                                #This generates a new dataframe "ecls_nomiss" that is a copy of your existing dataset removing missing variables 
 
 #Execute using matching algorithms 
 library(optmatch)
@@ -1301,7 +1324,7 @@ love.plot(match.it, stats=c("mean.diffs", "ks.statistics"),  #Generates a love p
 
 bal.plot(match.it, var.name="distance", which="both", type="histogram", mirror=TRUE)
 
-save(df.match, file="/Users/oliviayip/Library/Mobile Documents/com~apple~CloudDocs/UCSD/Research Projects/Cancer Expenditure Project/df.match.Rdata") 
+save(df.match, file="df.match.Rdata") 
 #If the procedure was successful, replace the file pathway here with your own local computer pathway to save the matched dataset. 
 
 
@@ -1390,3 +1413,102 @@ table(df.match$inscov,df.match$ccnrdi31)
 
 chisq.test(table(df.match$inscov,df.match$ccnrdi31), correct=FALSE)
 
+
+##### Applying survey weights --------------------------------------------------------------------------
+#First, create a flag in the "match.data" set to identify which persons are matched: 
+match.data <- match.data %>%
+  mutate(match=1)
+
+#Next, subset matched data to ONLY include dupersid and match flag: 
+match.data <- subset(match.data, select=c(dupersid, match))
+
+#Third, merge this back into the cleaned original datast (hc216_final)
+
+test <- merge(hc216_final, match.data, by="dupersid", all.x=TRUE)
+hc216_final <- test
+
+table(hc216_final$match)
+
+#SAVE THIS DATASET FOR FURTHER SURVEY WEIGHTED ANALYSIS: 
+save(hc216_final, file="hc216_final.Rdata")
+
+load(file="hc216_final.Rdata")
+#save(hc216_final, file='hc216_final.Rdata')
+#names(hc201) <- tolower(names(hc201))
+#hc201 <- subset(hc201, select=c(dupersid, varpsu, varstr, perwt17f))
+
+#hc216_final <- merge(hc216_final, hc201, by="dupersid", all.x=TRUE)
+
+library("survey")
+
+
+## Apply the survey weights to the dataframe using the svydesign function
+options(survey.lonely.psu = 'adjust')
+
+mepsdsn = svydesign(
+  id=~varpsu,
+  strata=~varstr,
+  weights=~perwt17f, #2017: PERWT17F
+  data=hc216_final, #Replace pool with your dataset name --> use your matched data 
+  nest=TRUE
+)
+
+study_dsn <- subset(mepsdsn, match==1) 
+svytable(~sex, design = study_dsn)
+
+#for continuous variables 
+#(age, total medical expenditure, prescription drugs etc, resource utilization variables (inpatient visits, outpatient visits, office based visits, ER visits))
+svyby(~age, ~cancer, design=study_dsn, svymean) 
+
+svyby(~totexp, ~cancer, design=study_dsn, svymean) #total exp
+svyby(~rxexp, ~cancer, design=study_dsn, svymean) #RX exp
+svyby(~optexp, ~cancer, design=study_dsn, svymean) #outpatient fac + dr exp
+svyby(~iptexp, ~cancer, design=study_dsn, svymean)  #inpatient exp
+svyby(~obtotv, ~cancer, design=study_dsn, svymean)  #office based visits 
+svyby(~iptexp, ~cancer, design=study_dsn, svymean)  #physician visits
+svyby(~optotv, ~cancer, design=study_dsn, svymean)  #outpatient provider visits 
+svyby(~ipngtd, ~cancer, design=study_dsn, svymean) #nights in hospital
+
+
+#for categorical variables 
+svyby(~age_cat, ~cancer, design=study_dsn, svytotal) #age category
+svyby(~racev1x, ~cancer, design=study_dsn, svytotal) #race
+svyby(~neweducode, ~cancer, design=study_dsn, svytotal) #edu
+svyby(~region, ~cancer, design=study_dsn, svytotal) #region
+svyby(~povcat, ~cancer, design=study_dsn, svytotal) #poverty
+svyby(~marritalstatus, ~cancer, design=study_dsn, svytotal) #maritalstatus
+svyby(~inscov, ~cancer, design=study_dsn, svytotal) #inscoverage
+
+
+svytable(~cabreast, design=study_dsn) #breast cancer
+svytable(~cacervix, design=study_dsn) #
+svytable(~cacolon, design=study_dsn) 
+svytable(~calung, design=study_dsn) 
+svytable(~calymph, design=study_dsn) 
+svytable(~camelano, design=study_dsn) 
+svytable(~caprosta, design=study_dsn) 
+
+
+svyranktest(~totexp+cancer, design=study_dsn, test='KruskalWallis')
+svyranktest(~rxexp+cancer, design=study_dsn, test='KruskalWallis')
+svyranktest(~optexp+cancer, design=study_dsn, test='KruskalWallis')
+svyranktest(~iptexp+cancer, design=study_dsn, test='KruskalWallis')
+svyranktest(~obtotv+cancer, design=study_dsn, test='KruskalWallis')
+svyranktest(~iptexp+cancer, design=study_dsn, test='KruskalWallis')
+svyranktest(~optotv+cancer, design=study_dsn, test='KruskalWallis')
+svyranktest(~ipngtd+cancer, design=study_dsn, test='KruskalWallis')
+svyranktest(~cncmed31+cancer, design=study_dsn, test='KruskalWallis')
+
+library("tidyverse")
+library("gtsummary")
+
+study_dsn %>%
+  tbl_svysummary(by = cancer, percent = "column", include = c(totexp,rxexp,optexp,iptexp,obtotv, iptexp,optotv,ipngtd))
+
+study_dsn %>%
+  tbl_svysummary(by = cancer, percent = "column", include = c(age, sex, age_cat,racev1x,neweducode,region,povcat,marritalstatus,inscov))
+
+
+#Save Rdata file as STATA for two-part models 
+library(foreign)
+write.dta(hc216_final, "hc216_final_stata.dta")
